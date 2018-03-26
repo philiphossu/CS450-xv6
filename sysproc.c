@@ -8,6 +8,18 @@
 #include "proc.h"
 
 int
+sys_myMemory(void){
+	// To do & Notes:
+	// - display number of pages allocated by calling process
+	// - proc struct contain reference to its page table ie. PDE
+	// - How to look up things in page directory?
+	// - Look through all pages and see which are allocated (count of them)
+	// - Also have to look through writable and accessible status via the respective bits
+
+	return 0;
+}
+
+int
 sys_fork(void)
 {
   return fork();

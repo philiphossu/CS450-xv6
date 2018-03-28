@@ -14,7 +14,7 @@
 00000000 ulib.c
 00000000 printf.c
 000003f0 printint
-00000835 digits.1030
+00000835 digits.1032
 00000000 umalloc.c
 00000ae0 freep
 00000ae4 base
@@ -47,6 +47,7 @@
 000003ba dup
 00000b00 buf
 00000290 stat
+000003e2 myMemory
 00000ae0 _edata
 00000d00 _end
 000003a2 link

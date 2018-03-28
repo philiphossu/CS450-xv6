@@ -14,7 +14,7 @@
 00000000 ulib.c
 00000000 printf.c
 000005e0 printint
-00000a25 digits.1030
+00000a25 digits.1032
 00000000 umalloc.c
 00000d80 freep
 00000d84 base
@@ -49,6 +49,7 @@
 000005aa dup
 00000da0 buf
 00000480 stat
+000005d2 myMemory
 00000d78 _edata
 000011a0 _end
 000001b0 match

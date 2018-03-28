@@ -47,7 +47,7 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
     // Make sure all those PTE_P bits are zero.
     memset(pgtab, 0, PGSIZE);
     // The permissions here are overly generous, but they can
-    // be further restricted by the permissions in the page table
+    // be further restricted by tlayhe permissions in the page table
     // entries, if necessary.
     *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
   }

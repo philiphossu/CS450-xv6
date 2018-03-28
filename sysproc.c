@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+//#include "user.h"
 
 int
 sys_myMemory(void){
@@ -16,7 +17,33 @@ sys_myMemory(void){
 	// - Look through all pages and see which are allocated (count of them)
 	// - Also have to look through writable and accessible status via the respective bits
 
-	return 0;
+	pde_t * pde = myproc()->pgdir;
+	pde_t * ptAdder;
+	int index;
+	int innerIndex;
+	int presentPagesCounter = 0;
+	int userWritePagesCounter = 0;
+	for(index=0; index < 1024;index++){
+		if (((pde[index]) & (uint)PTE_P)){
+			ptAdder = (pde_t *)P2V(PTE_ADDR(pde[index]));
+			for(innerIndex=0; innerIndex<1024; innerIndex++){
+				if(ptAdder[innerIndex] & (uint)PTE_U){
+					// Page is present
+					presentPagesCounter++;
+					if ((ptAdder[innerIndex] & (uint)PTE_U) && (ptAdder[innerIndex] & (uint)PTE_W)){
+						//Page is accessible and writable
+						userWritePagesCounter++;
+					}
+				}
+				//ptAdder = (uint*)((char *)ptAdder +(uint) 0x20);
+			}
+			//totalNumPages+=1024;
+		}
+		//pde = (pde_t*)((char *)pde +(uint) 0x20);
+	}
+	cprintf("Present Pages: %d\n",presentPagesCounter);
+	cprintf("Write/User Pages: %d\n",userWritePagesCounter);
+	return presentPagesCounter;
 }
 
 int

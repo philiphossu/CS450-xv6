@@ -14806,12 +14806,12 @@ sys_myMemory(void){
 80105200:	55                   	push   %ebp
 80105201:	89 e5                	mov    %esp,%ebp
 80105203:	57                   	push   %edi
-	pde_t * ptAdder;
-	int index;
-	int innerIndex;
+	pde_t * pageDirectory = myproc()->pgdir;
+	pte_t * pageTable;
+	int pageDirectoryIndex;
+	int pageTableIndex;
 	int presentPagesCounter = 0;
 	int userWritePagesCounter = 0;
-	for(index=0; index < 1024;index++){
 80105204:	31 ff                	xor    %edi,%edi
 #include "mmu.h"
 #include "proc.h"
@@ -14820,12 +14820,11 @@ sys_myMemory(void){
 int
 sys_myMemory(void){
 80105206:	56                   	push   %esi
-	pde_t * pde = myproc()->pgdir;
-	pde_t * ptAdder;
-	int index;
-	int innerIndex;
+	pde_t * pageDirectory = myproc()->pgdir;
+	pte_t * pageTable;
+	int pageDirectoryIndex;
+	int pageTableIndex;
 	int presentPagesCounter = 0;
-	int userWritePagesCounter = 0;
 80105207:	31 f6                	xor    %esi,%esi
 #include "mmu.h"
 #include "proc.h"
@@ -14834,110 +14833,110 @@ sys_myMemory(void){
 int
 sys_myMemory(void){
 80105209:	53                   	push   %ebx
-
-	pde_t * pde = myproc()->pgdir;
-	pde_t * ptAdder;
-	int index;
-	int innerIndex;
+8010520a:	83 ec 1c             	sub    $0x1c,%esp
+	pde_t * pageDirectory = myproc()->pgdir;
+8010520d:	e8 9e e4 ff ff       	call   801036b0 <myproc>
+	pte_t * pageTable;
+	int pageDirectoryIndex;
+	int pageTableIndex;
 	int presentPagesCounter = 0;
-8010520a:	31 db                	xor    %ebx,%ebx
-#include "mmu.h"
+	int userWritePagesCounter = 0;
+	for(pageDirectoryIndex=0; pageDirectoryIndex < 1024;pageDirectoryIndex++){
+80105212:	c7 45 e4 00 00 00 00 	movl   $0x0,-0x1c(%ebp)
 #include "proc.h"
 //#include "user.h"
 
 int
 sys_myMemory(void){
-8010520c:	83 ec 1c             	sub    $0x1c,%esp
-
-	// - fix using the index
-	// - quick test if work
-	// - how to include print? cprintf and add the include
-
-	pde_t * pde = myproc()->pgdir;
-8010520f:	e8 9c e4 ff ff       	call   801036b0 <myproc>
-80105214:	8b 40 04             	mov    0x4(%eax),%eax
-80105217:	89 45 e4             	mov    %eax,-0x1c(%ebp)
-8010521a:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
-	int index;
-	int innerIndex;
+	pde_t * pageDirectory = myproc()->pgdir;
+80105219:	8b 40 04             	mov    0x4(%eax),%eax
+8010521c:	89 45 e0             	mov    %eax,-0x20(%ebp)
+8010521f:	90                   	nop
+	int pageDirectoryIndex;
+	int pageTableIndex;
 	int presentPagesCounter = 0;
 	int userWritePagesCounter = 0;
-	for(index=0; index < 1024;index++){
-		if (((pde[index]) & (uint)PTE_P)){
-80105220:	8b 45 e4             	mov    -0x1c(%ebp),%eax
-80105223:	8b 04 b8             	mov    (%eax,%edi,4),%eax
-80105226:	a8 01                	test   $0x1,%al
-80105228:	74 35                	je     8010525f <sys_myMemory+0x5f>
-			ptAdder = (pde_t *)P2V(PTE_ADDR(pde[index]));
-8010522a:	25 00 f0 ff ff       	and    $0xfffff000,%eax
-8010522f:	8d 88 00 10 00 80    	lea    -0x7ffff000(%eax),%ecx
-80105235:	05 00 00 00 80       	add    $0x80000000,%eax
-8010523a:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
-			for(innerIndex=0; innerIndex<1024; innerIndex++){
-				if(ptAdder[innerIndex] & (uint)PTE_U){
-80105240:	8b 10                	mov    (%eax),%edx
-80105242:	f6 c2 04             	test   $0x4,%dl
-80105245:	74 11                	je     80105258 <sys_myMemory+0x58>
+	for(pageDirectoryIndex=0; pageDirectoryIndex < 1024;pageDirectoryIndex++){
+		if ((((pageDirectory[pageDirectoryIndex]) & (uint)PTE_P))){
+80105220:	8b 45 e0             	mov    -0x20(%ebp),%eax
+80105223:	8b 5d e4             	mov    -0x1c(%ebp),%ebx
+80105226:	8b 04 98             	mov    (%eax,%ebx,4),%eax
+80105229:	a8 01                	test   $0x1,%al
+8010522b:	74 3b                	je     80105268 <sys_myMemory+0x68>
+			pageTable = (pde_t *)P2V(PTE_ADDR(pageDirectory[pageDirectoryIndex]));
+8010522d:	25 00 f0 ff ff       	and    $0xfffff000,%eax
+80105232:	8d 98 00 10 00 80    	lea    -0x7ffff000(%eax),%ebx
+80105238:	05 00 00 00 80       	add    $0x80000000,%eax
+8010523d:	eb 08                	jmp    80105247 <sys_myMemory+0x47>
+8010523f:	90                   	nop
+80105240:	83 c0 04             	add    $0x4,%eax
+			for(pageTableIndex=0; pageTableIndex<1024; pageTableIndex++){
+80105243:	39 d8                	cmp    %ebx,%eax
+80105245:	74 21                	je     80105268 <sys_myMemory+0x68>
+				if((pageTable[pageTableIndex] & (uint)PTE_U) && (pageTable[pageTableIndex] & (uint)PTE_P)){
+80105247:	8b 10                	mov    (%eax),%edx
+80105249:	89 d1                	mov    %edx,%ecx
+8010524b:	83 e1 05             	and    $0x5,%ecx
+8010524e:	83 f9 05             	cmp    $0x5,%ecx
+80105251:	75 ed                	jne    80105240 <sys_myMemory+0x40>
 					// Page is present
 					presentPagesCounter++;
-					if ((ptAdder[innerIndex] & (uint)PTE_U) && (ptAdder[innerIndex] & (uint)PTE_W)){
-80105247:	83 e2 06             	and    $0x6,%edx
-		if (((pde[index]) & (uint)PTE_P)){
-			ptAdder = (pde_t *)P2V(PTE_ADDR(pde[index]));
-			for(innerIndex=0; innerIndex<1024; innerIndex++){
-				if(ptAdder[innerIndex] & (uint)PTE_U){
+					if ((pageTable[pageTableIndex] & (uint)PTE_W)){
+80105253:	83 e2 02             	and    $0x2,%edx
+		if ((((pageDirectory[pageDirectoryIndex]) & (uint)PTE_P))){
+			pageTable = (pde_t *)P2V(PTE_ADDR(pageDirectory[pageDirectoryIndex]));
+			for(pageTableIndex=0; pageTableIndex<1024; pageTableIndex++){
+				if((pageTable[pageTableIndex] & (uint)PTE_U) && (pageTable[pageTableIndex] & (uint)PTE_P)){
 					// Page is present
 					presentPagesCounter++;
-8010524a:	83 c3 01             	add    $0x1,%ebx
-					if ((ptAdder[innerIndex] & (uint)PTE_U) && (ptAdder[innerIndex] & (uint)PTE_W)){
+80105256:	83 c6 01             	add    $0x1,%esi
+					if ((pageTable[pageTableIndex] & (uint)PTE_W)){
 						//Page is accessible and writable
 						userWritePagesCounter++;
-8010524d:	83 fa 06             	cmp    $0x6,%edx
-80105250:	0f 94 c2             	sete   %dl
-80105253:	0f b6 d2             	movzbl %dl,%edx
-80105256:	01 d6                	add    %edx,%esi
-80105258:	83 c0 04             	add    $0x4,%eax
+80105259:	83 fa 01             	cmp    $0x1,%edx
+8010525c:	83 df ff             	sbb    $0xffffffff,%edi
+8010525f:	83 c0 04             	add    $0x4,%eax
 	int presentPagesCounter = 0;
 	int userWritePagesCounter = 0;
-	for(index=0; index < 1024;index++){
-		if (((pde[index]) & (uint)PTE_P)){
-			ptAdder = (pde_t *)P2V(PTE_ADDR(pde[index]));
-			for(innerIndex=0; innerIndex<1024; innerIndex++){
-8010525b:	39 c8                	cmp    %ecx,%eax
-8010525d:	75 e1                	jne    80105240 <sys_myMemory+0x40>
-	pde_t * ptAdder;
-	int index;
-	int innerIndex;
+	for(pageDirectoryIndex=0; pageDirectoryIndex < 1024;pageDirectoryIndex++){
+		if ((((pageDirectory[pageDirectoryIndex]) & (uint)PTE_P))){
+			pageTable = (pde_t *)P2V(PTE_ADDR(pageDirectory[pageDirectoryIndex]));
+			for(pageTableIndex=0; pageTableIndex<1024; pageTableIndex++){
+80105262:	39 d8                	cmp    %ebx,%eax
+80105264:	75 e1                	jne    80105247 <sys_myMemory+0x47>
+80105266:	66 90                	xchg   %ax,%ax
+	pte_t * pageTable;
+	int pageDirectoryIndex;
+	int pageTableIndex;
 	int presentPagesCounter = 0;
 	int userWritePagesCounter = 0;
-	for(index=0; index < 1024;index++){
-8010525f:	83 c7 01             	add    $0x1,%edi
-80105262:	81 ff 00 04 00 00    	cmp    $0x400,%edi
-80105268:	75 b6                	jne    80105220 <sys_myMemory+0x20>
+	for(pageDirectoryIndex=0; pageDirectoryIndex < 1024;pageDirectoryIndex++){
+80105268:	83 45 e4 01          	addl   $0x1,-0x1c(%ebp)
+8010526c:	81 7d e4 00 04 00 00 	cmpl   $0x400,-0x1c(%ebp)
+80105273:	75 ab                	jne    80105220 <sys_myMemory+0x20>
+				}
 			}
-			//totalNumPages+=1024;
 		}
-		//pde = (pde_t*)((char *)pde +(uint) 0x20);
 	}
+	//Present = Accessible
 	cprintf("Present Pages: %d\n",presentPagesCounter);
-8010526a:	89 5c 24 04          	mov    %ebx,0x4(%esp)
-8010526e:	c7 04 24 1d 74 10 80 	movl   $0x8010741d,(%esp)
-80105275:	e8 d6 b3 ff ff       	call   80100650 <cprintf>
+80105275:	89 74 24 04          	mov    %esi,0x4(%esp)
+80105279:	c7 04 24 1d 74 10 80 	movl   $0x8010741d,(%esp)
+80105280:	e8 cb b3 ff ff       	call   80100650 <cprintf>
 	cprintf("Write/User Pages: %d\n",userWritePagesCounter);
-8010527a:	89 74 24 04          	mov    %esi,0x4(%esp)
-8010527e:	c7 04 24 30 74 10 80 	movl   $0x80107430,(%esp)
-80105285:	e8 c6 b3 ff ff       	call   80100650 <cprintf>
+80105285:	89 7c 24 04          	mov    %edi,0x4(%esp)
+80105289:	c7 04 24 30 74 10 80 	movl   $0x80107430,(%esp)
+80105290:	e8 bb b3 ff ff       	call   80100650 <cprintf>
 	return presentPagesCounter;
 }
-8010528a:	83 c4 1c             	add    $0x1c,%esp
-8010528d:	89 d8                	mov    %ebx,%eax
-8010528f:	5b                   	pop    %ebx
-80105290:	5e                   	pop    %esi
-80105291:	5f                   	pop    %edi
-80105292:	5d                   	pop    %ebp
-80105293:	c3                   	ret    
-80105294:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
-8010529a:	8d bf 00 00 00 00    	lea    0x0(%edi),%edi
+80105295:	83 c4 1c             	add    $0x1c,%esp
+80105298:	89 f0                	mov    %esi,%eax
+8010529a:	5b                   	pop    %ebx
+8010529b:	5e                   	pop    %esi
+8010529c:	5f                   	pop    %edi
+8010529d:	5d                   	pop    %ebp
+8010529e:	c3                   	ret    
+8010529f:	90                   	nop
 
 801052a0 <sys_fork>:
 

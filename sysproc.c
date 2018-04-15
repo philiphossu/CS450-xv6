@@ -10,37 +10,28 @@
 
 int
 sys_myMemory(void){
-	// To do & Notes:
-	// - display number of pages allocated by calling process
-	// - proc struct contain reference to its page table ie. PDE
-	// - How to look up things in page directory?
-	// - Look through all pages and see which are allocated (count of them)
-	// - Also have to look through writable and accessible status via the respective bits
-
-	pde_t * pde = myproc()->pgdir;
-	pde_t * ptAdder;
-	int index;
-	int innerIndex;
+	pde_t * pageDirectory = myproc()->pgdir;
+	pte_t * pageTable;
+	int pageDirectoryIndex;
+	int pageTableIndex;
 	int presentPagesCounter = 0;
 	int userWritePagesCounter = 0;
-	for(index=0; index < 1024;index++){
-		if (((pde[index]) & (uint)PTE_P)){
-			ptAdder = (pde_t *)P2V(PTE_ADDR(pde[index]));
-			for(innerIndex=0; innerIndex<1024; innerIndex++){
-				if(ptAdder[innerIndex] & (uint)PTE_U){
+	for(pageDirectoryIndex=0; pageDirectoryIndex < 1024;pageDirectoryIndex++){
+		if ((((pageDirectory[pageDirectoryIndex]) & (uint)PTE_P))){
+			pageTable = (pde_t *)P2V(PTE_ADDR(pageDirectory[pageDirectoryIndex]));
+			for(pageTableIndex=0; pageTableIndex<1024; pageTableIndex++){
+				if((pageTable[pageTableIndex] & (uint)PTE_U) && (pageTable[pageTableIndex] & (uint)PTE_P)){
 					// Page is present
 					presentPagesCounter++;
-					if ((ptAdder[innerIndex] & (uint)PTE_U) && (ptAdder[innerIndex] & (uint)PTE_W)){
+					if ((pageTable[pageTableIndex] & (uint)PTE_W)){
 						//Page is accessible and writable
 						userWritePagesCounter++;
 					}
 				}
-				//ptAdder = (uint*)((char *)ptAdder +(uint) 0x20);
 			}
-			//totalNumPages+=1024;
 		}
-		//pde = (pde_t*)((char *)pde +(uint) 0x20);
 	}
+	//Present = Accessible
 	cprintf("Present Pages: %d\n",presentPagesCounter);
 	cprintf("Write/User Pages: %d\n",userWritePagesCounter);
 	return presentPagesCounter;

@@ -15,6 +15,52 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+#include "buf.h"
+
+struct superblock sb;
+
+int sys_inodeTBWalker(void){
+	int inum;
+	struct buf *bp;
+	struct dinode *dip;
+	readsb(1,&sb);
+	for(inum = 1; inum < sb.ninodes; inum++){
+		bp = bread(1, IBLOCK(inum, sb));
+		dip = (struct dinode*)bp->data + inum%IPB;
+		if(dip->type == 0){  // a free inode
+			//cprintf("Skipping inode #: %d",inum);
+		}
+		else{
+			// Found allocated inode
+			cprintf("inode#: %d \t type: %d\n",inum,dip->type);
+		}
+		brelse(bp);
+	}
+	return 0;
+}
+
+int sys_deleteIData(void){
+	begin_op();
+	int inum;
+	argint(0,&inum); // Get inode number of inode to delete from arguments list
+	struct inode *inodeToDel;
+	inodeToDel = calliget(inum); // Obtain inode
+	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
+	ilock(inodeToDel);
+
+	inodeToDel->type=0;
+	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
+	iunlockput(inodeToDel);
+	acquiresleep(&inodeToDel->lock);
+	iupdate(inodeToDel);
+	releasesleep(&inodeToDel->lock);
+	end_op();
+
+	inodeToDel = calliget(inum);
+	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
+
+	return 0;
+}
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.

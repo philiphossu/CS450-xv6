@@ -24,6 +24,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int myMemory(void);
+int inodeTBWalker(void);
+int deleteIData(int);
 
 // ulib.c
 int stat(char*, struct stat*);

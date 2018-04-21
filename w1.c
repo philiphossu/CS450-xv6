@@ -6,6 +6,7 @@
 
 int main(int argc, char **argv) {
 	inodeTBWalker();
+	directoryWalker(".");
 	//deleteIData(10);
 	//inodeTBWalker();
 	exit();

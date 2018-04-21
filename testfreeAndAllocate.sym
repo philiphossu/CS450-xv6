@@ -1,7 +1,7 @@
 00000000 .text
-00000828 .rodata
-0000093c .eh_frame
-00000ba0 .bss
+00000838 .rodata
+0000094c .eh_frame
+00000bb0 .bss
 00000000 .comment
 00000000 .debug_aranges
 00000000 .debug_info
@@ -13,20 +13,20 @@
 00000000 testfreeAndAllocate.c
 00000000 ulib.c
 00000000 printf.c
-00000420 printint
-0000092b digits.1036
+00000430 printint
+0000093b digits.1038
 00000000 umalloc.c
-00000ba0 freep
-00000ba4 base
+00000bb0 freep
+00000bb4 base
 00000000 
 00000140 strcpy
-000004c0 printf
+000004d0 printf
 00000412 deleteIData
 00000330 memmove
 000003aa mknod
 00000250 gets
 000003e2 getpid
-00000740 malloc
+00000750 malloc
 000003f2 sleep
 00000372 pipe
 00000382 write
@@ -38,9 +38,10 @@
 0000037a read
 000003b2 unlink
 0000035a fork
+0000041a directoryWalker
 000003ea sbrk
 000003fa uptime
-00000ba0 __bss_start
+00000bb0 __bss_start
 000001f0 memset
 00000000 main
 00000170 strcmp
@@ -48,8 +49,8 @@
 0000040a inodeTBWalker
 000002b0 stat
 00000402 myMemory
-00000ba0 _edata
-00000bac _end
+00000bb0 _edata
+00000bbc _end
 000003c2 link
 00000362 exit
 00000300 atoi
@@ -58,4 +59,4 @@
 00000210 strchr
 000003ca mkdir
 0000038a close
-000006b0 free
+000006c0 free

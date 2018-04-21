@@ -26,6 +26,7 @@ int uptime(void);
 int myMemory(void);
 int inodeTBWalker(void);
 int deleteIData(int);
+int directoryWalker(char*);
 
 // ulib.c
 int stat(char*, struct stat*);

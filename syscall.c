@@ -106,6 +106,7 @@ extern int sys_uptime(void);
 extern int sys_myMemory(void);
 extern int sys_inodeTBWalker(void);
 extern int sys_deleteIData(void);
+extern int sys_directoryWalker(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -132,6 +133,7 @@ static int (*syscalls[])(void) = {
 [SYS_myMemory] sys_myMemory,
 [SYS_inodeTBWalker] sys_inodeTBWalker,
 [SYS_deleteIData] sys_deleteIData,
+[SYS_directoryWalker] sys_directoryWalker,
 };
 
 void

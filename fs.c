@@ -236,9 +236,28 @@ iupdate(struct inode *ip)
   brelse(bp);
 }
 
-struct inode*
+void
 calliget(uint inum){
-	return iget(0,inum);
+	begin_op();
+	struct inode *inodeToDel;
+	inodeToDel = iget(1,inum);
+	ilock(inodeToDel);
+	//cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
+
+	//inodeToDel->nlink=0;
+	//inodeToDel->type=0;
+	inodeToDel->addrs[0] = 0;
+	//inodeToDel->valid=0;
+	iupdate(inodeToDel);
+
+	//cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
+	iunlock(inodeToDel);
+
+	end_op();
+
+
+	return;
+	//return iget(inum);
 }
 
 // Find the inode with number inum on device dev

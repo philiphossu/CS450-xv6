@@ -20,19 +20,16 @@
 struct superblock sb;
 
 int sys_inodeTBWalker(void){
-	int inum;
+	int inum; // Loop counter
 	struct buf *bp;
 	struct dinode *dip;
-	readsb(1,&sb);
+	readsb(1,&sb); // Read superblock
 	for(inum = 1; inum < sb.ninodes; inum++){
 		bp = bread(1, IBLOCK(inum, sb));
 		dip = (struct dinode*)bp->data + inum%IPB;
-		if(dip->type == 0){  // a free inode
-			//cprintf("Skipping inode #: %d",inum);
-		}
-		else{
+		if(dip->type != 0){  // not a free inode
 			// Found allocated inode
-			cprintf("inode#: %d \t type: %d\n",inum,dip->type);
+			cprintf("inode#: %d \t type: %d \t links: %d\n",inum,dip->type,dip->nlink);
 		}
 		brelse(bp);
 	}
@@ -40,25 +37,30 @@ int sys_inodeTBWalker(void){
 }
 
 int sys_deleteIData(void){
+	/*
 	begin_op();
 	int inum;
 	argint(0,&inum); // Get inode number of inode to delete from arguments list
 	struct inode *inodeToDel;
 	inodeToDel = calliget(inum); // Obtain inode
 	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
-	ilock(inodeToDel);
 
-	inodeToDel->type=0;
+	ilock(inodeToDel);
+	//inodeToDel->type=0;
+	inodeToDel->nlink=0;
+	inodeToDel->ref=0;
+	callitrunc(inodeToDel);
 	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
-	iunlockput(inodeToDel);
-	acquiresleep(&inodeToDel->lock);
 	iupdate(inodeToDel);
-	releasesleep(&inodeToDel->lock);
+	iunlockput(inodeToDel);
 	end_op();
 
 	inodeToDel = calliget(inum);
 	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
-
+	*/
+	int inum;
+	argint(0,&inum);
+	calliget(inum);
 	return 0;
 }
 

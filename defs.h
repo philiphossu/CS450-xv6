@@ -52,7 +52,8 @@ struct inode*   nameiparent(char*, char*);
 int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
-struct inode* 	calliget(uint inum);
+//struct inode* 	calliget(uint inum);
+void		 	calliget(uint inum);
 
 
 // ide.c

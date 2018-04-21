@@ -177,6 +177,7 @@ UPROGS=\
 	_testfreeAndAllocate\
 	_directoryWalker\
 	_w1\
+	_compareWalkers\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

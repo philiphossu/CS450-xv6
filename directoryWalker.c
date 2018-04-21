@@ -22,7 +22,6 @@ char* fmtname(char *path) {
 }
 
 void directw(char *path) {
-	static int level=0;
 	char buf[512], *p;
 	int fd;
 	struct dirent de;
@@ -42,7 +41,6 @@ void directw(char *path) {
 	switch(st.type){
 	case T_DIR:
 		printf(1,"---> Directory Located <--- \n");
-		++level;
 		if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
 			printf(1, "Directorywalker Error: path too long\n");
 			break;
@@ -63,17 +61,17 @@ void directw(char *path) {
 				continue;
 			}
 			if (strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0){
-				printf(1,"Directory Entry (./..): iNode # = %d \t Name = %s \t Level = %d\n", st.ino, fmtname(buf),level);
+				printf(1,"Directory Entry (./..): iNode # = %d \t Name = %s \t nlink: %d\n", st.ino, fmtname(buf), st.nlink);
 				continue;
 			}
 			else{
-				printf(1,"Directory Entry (File or Subdirectory) to be explored: iNode # = %d \t Name = %s \t Level = %d\n", st.ino, fmtname(buf),level);
+				printf(1,"Directory Entry (File or Subdirectory): iNode # = %d \t Name = %s \t nlink: %d\n", st.ino, fmtname(buf), st.nlink);
 				directw(buf);
 			}
 		}
 		break;
 	case T_FILE:
-		printf(1,"---> File Located, Ending This Branch <--- \n");
+		//printf(1,"---> File Located, Ending This Branch <--- \n");
 		close(fd);
 		return;
 	}
@@ -81,20 +79,49 @@ void directw(char *path) {
 }
 
 int main(int argc, char *argv[]) {
-	mkdir("testdir");
-	int fd;
-	fd = open("/testdir/smallTestFile", O_CREATE | O_RDWR);
-	if(fd >= 0){
-		printf(1, "----> File creation successful.\n");
+	int testingFlag = 2; // SWITCH THIS FLAG TO 1 TO ENABLE THE TEST CASES TO RUN
+
+//	if(testingFlag == 1){
+//		mkdir("test_directory_1");
+//		int fd;
+//		fd = open("/testdir/smallTestFile", O_CREATE | O_RDWR);
+//		if(fd >= 0){
+//			printf(1, "----> File creation successful.\n");
+//		}
+//		write(fd, "22", 2);
+//		close(fd);
+//		mkdir("/test_directory_1/test_directory_1_1");
+//		mkdir("/test_directory_1/test_directory_1_2");
+//	}
+
+	if(testingFlag == 2){
+		mkdir("foo");
+		int fd;
+		fd = open("/foo/smallTestFile", O_CREATE | O_RDWR);
+		if(fd >= 0){
+			printf(1, "----> File creation successful.\n");
+		}
+		write(fd, "22", 2);
+		close(fd);
 	}
-	write(fd, "22", 2);
-	close(fd);
 
 	if(argc < 2){
+		directw(".");
+		if(testingFlag == 1){
+			printf(1,"\n\n");
+			//rmdir("test_directory_1/test_directory_1_1");
+			directw(".");
+		}
+		deleteIData(23);
 		directw(".");
 		exit();
 	}
 
 	directw(argv[1]);
+	if(testingFlag == 1){
+		printf(1,"\n\n");
+		//rmdir("test_directory_1/test_directory_1_1");
+		directw(argv[1]);
+	}
 	exit();
 }

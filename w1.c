@@ -6,8 +6,8 @@
 
 int main(int argc, char **argv) {
 	inodeTBWalker();
-	deleteIData(10);
-	inodeTBWalker();
+	//deleteIData(10);
+	//inodeTBWalker();
 	exit();
 	return 0;
 }

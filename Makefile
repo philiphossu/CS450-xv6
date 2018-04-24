@@ -178,6 +178,7 @@ UPROGS=\
 	_directoryWalker\
 	_w1\
 	_compareWalkers\
+	_recoverFS\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

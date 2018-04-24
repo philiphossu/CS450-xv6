@@ -23,9 +23,15 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 static void itrunc(struct inode*);
+static struct inode* iget(uint dev, uint inum);
 // there should be one superblock per disk device, but we run with
 // only one device
 struct superblock sb;
+
+struct inode*
+igetCaller(uint inum){
+	return iget(1,inum);
+}
 
 // Read the super block.
 void
@@ -237,18 +243,15 @@ iupdate(struct inode *ip)
 }
 
 void
-calliget(uint inum){
+callDeleteInFS(uint inum){
 	begin_op();
 	struct inode *inodeToDel;
 	inodeToDel = iget(1,inum);
 	ilock(inodeToDel);
-	//cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
 
 	inodeToDel->addrs[0] = 0;
 
 	iupdate(inodeToDel);
-
-	//cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
 	iunlock(inodeToDel);
 
 	end_op();

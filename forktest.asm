@@ -71,7 +71,7 @@ forktest(void)
   int n, pid;
 
   printf(1, "fork test\n");
-  49:	c7 44 24 04 04 04 00 	movl   $0x404,0x4(%esp)
+  49:	c7 44 24 04 14 04 00 	movl   $0x414,0x4(%esp)
   50:	00 
   51:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   58:	e8 b3 ff ff ff       	call   10 <printf>
@@ -137,7 +137,7 @@ forktest(void)
   }
 
   printf(1, "fork test OK\n");
-  a2:	c7 44 24 04 36 04 00 	movl   $0x436,0x4(%esp)
+  a2:	c7 44 24 04 46 04 00 	movl   $0x446,0x4(%esp)
   a9:	00 
   aa:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   b1:	e8 5a ff ff ff       	call   10 <printf>
@@ -153,9 +153,9 @@ void
 printf(int fd, char *s, ...)
 {
   write(fd, s, strlen(s));
-  c0:	c7 04 24 44 04 00 00 	movl   $0x444,(%esp)
+  c0:	c7 04 24 54 04 00 00 	movl   $0x454,(%esp)
   c7:	e8 d4 00 00 00       	call   1a0 <strlen>
-  cc:	c7 44 24 04 44 04 00 	movl   $0x444,0x4(%esp)
+  cc:	c7 44 24 04 54 04 00 	movl   $0x454,0x4(%esp)
   d3:	00 
   d4:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   db:	89 44 24 08          	mov    %eax,0x8(%esp)
@@ -172,7 +172,7 @@ printf(int fd, char *s, ...)
   for(; n > 0; n--){
     if(wait() < 0){
       printf(1, "wait stopped early\n");
-  e9:	c7 44 24 04 0f 04 00 	movl   $0x40f,0x4(%esp)
+  e9:	c7 44 24 04 1f 04 00 	movl   $0x41f,0x4(%esp)
   f0:	00 
   f1:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   f8:	e8 13 ff ff ff       	call   10 <printf>
@@ -183,7 +183,7 @@ printf(int fd, char *s, ...)
 
   if(wait() != -1){
     printf(1, "wait got too many\n");
- 102:	c7 44 24 04 23 04 00 	movl   $0x423,0x4(%esp)
+ 102:	c7 44 24 04 33 04 00 	movl   $0x433,0x4(%esp)
  109:	00 
  10a:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
  111:	e8 fa fe ff ff       	call   10 <printf>
@@ -837,3 +837,15 @@ SYSCALL(directoryWalker)
  3fa:	b8 19 00 00 00       	mov    $0x19,%eax
  3ff:	cd 40                	int    $0x40
  401:	c3                   	ret    
+
+00000402 <compareWalkers>:
+SYSCALL(compareWalkers)
+ 402:	b8 1a 00 00 00       	mov    $0x1a,%eax
+ 407:	cd 40                	int    $0x40
+ 409:	c3                   	ret    
+
+0000040a <recoverFS>:
+SYSCALL(recoverFS)
+ 40a:	b8 1b 00 00 00       	mov    $0x1b,%eax
+ 40f:	cd 40                	int    $0x40
+ 411:	c3                   	ret    

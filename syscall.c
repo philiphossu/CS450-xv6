@@ -107,6 +107,8 @@ extern int sys_myMemory(void);
 extern int sys_inodeTBWalker(void);
 extern int sys_deleteIData(void);
 extern int sys_directoryWalker(void);
+extern int sys_compareWalkers(void);
+extern int sys_recoverFS(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -134,6 +136,8 @@ static int (*syscalls[])(void) = {
 [SYS_inodeTBWalker] sys_inodeTBWalker,
 [SYS_deleteIData] sys_deleteIData,
 [SYS_directoryWalker] sys_directoryWalker,
+[SYS_compareWalkers] sys_compareWalkers,
+[SYS_recoverFS] sys_recoverFS,
 };
 
 void

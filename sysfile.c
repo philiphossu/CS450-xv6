@@ -18,23 +18,132 @@
 #include "buf.h"
 
 void subRoutine(char* path);
-char * pathCat(char * path, char * subname);
-char* strcat(char* s1, const char* s2);
+void strcat(char* s1, const char* s2);
 int strcmp(const char* s1, char* s2);
-char* strcpy(char* s1, const char* s2);
-int checkMyAddrs(int inum);
+int sys_directoryWalker(void);
+int sys_inodeTBWalker(void);
+void fixFile(int inum);
+void reverse(char s[]);
+void itoa(int n, char s[]);
+void fixDir(int dirIndex, int parentIndex);
 
 struct superblock sb;
 int inodeLinkLog[200];
+int inodeTBWalkerLinkLog[200];
+int corruptDirs[200];
 
-char* strcat(char* s1, const char* s2){
-  char* b = s1;
+int sys_recoverFS(){
+	int inodeIndex;
+	for(inodeIndex=2;inodeIndex<200; inodeIndex++){
+		if(corruptDirs[inodeIndex] != 0){
+			cprintf("FIXING A DIRECTORY\n");
+			fixDir(inodeIndex, corruptDirs[inodeIndex]);
+		}
+	}
+	for(inodeIndex=2; inodeIndex<200; inodeIndex++){
+		if(inodeLinkLog[inodeIndex] != inodeTBWalkerLinkLog[inodeIndex]){
+			cprintf("FIXING A FILE\n");
+			fixFile(inodeIndex);
+		}
+	}
+	// Clear arrays, everything should be fixed now
+	int inodeNum = 0;
+	for(inodeNum = 0; inodeNum<200;inodeNum++){
+		inodeLinkLog[inodeNum]=0;
+	}
+	inodeNum = 0;
+	for(inodeNum = 0; inodeNum<200;inodeNum++){
+		corruptDirs[inodeNum]=0;
+	}
 
+	return 1;
+}
+
+void fixDir(int dirIndex, int parentIndex){
+	begin_op();
+	struct inode* dirPointer;
+	struct inode* dirParentPointer;
+	dirPointer = igetCaller(dirIndex);
+	dirParentPointer = igetCaller(parentIndex);
+	dirlink(dirPointer,".",dirPointer->inum);
+	dirlink(dirPointer,"..",dirParentPointer->inum);
+	end_op();
+}
+
+void fixFile(int inum){
+	begin_op();
+	struct inode* ip;
+	char newName[14] = {0};
+	strcat(newName,"tmp_");
+	char tmpNum[4];
+	itoa(inum,tmpNum);
+	strcat(newName,tmpNum);
+	ip = igetCaller(1);
+	ilock(ip);
+	dirlink(ip,newName,inum);
+	iunlock(ip);
+	end_op();
+}
+
+int sys_compareWalkers(){
+	cprintf("\n= = = Calling inodeTBwalker = = =\n");
+	sys_inodeTBWalker();
+	cprintf("\n\n");
+	cprintf("\n= = = Calling directoryWalker = = =\n");
+	sys_directoryWalker();
+	cprintf("\n\n");
+	cprintf("\n= = = Comparing walkers = = =\n");
+	int inodeIndex;
+	int similarity = 1;
+	// We begin at 2 because the root will be the same
+	for(inodeIndex=2; inodeIndex<200; inodeIndex++){
+		if(inodeLinkLog[inodeIndex] != inodeTBWalkerLinkLog[inodeIndex]){
+			similarity = 0;
+			cprintf("Found difference between inodeTBWalker & directoryWalker @ inode#: %d\n",inodeIndex);
+			cprintf("inodeTBwalker #links: %d \t directoryWalker #links: %d\n\n",inodeTBWalkerLinkLog[inodeIndex],inodeLinkLog[inodeIndex]);
+		}
+	}
+	for(inodeIndex=2; inodeIndex<200; inodeIndex++){
+		if(corruptDirs[inodeIndex] != 0){
+			cprintf("Found a corrupted directory#: %d\n",inodeIndex);
+		}
+	}
+	return similarity;
+}
+
+void reverse(char s[])
+ {
+     int i, j;
+     char c;
+
+     for (i = 0, j = strlen(s)-1; i<j; i++, j--) {
+         c = s[i];
+         s[i] = s[j];
+         s[j] = c;
+     }
+
+ }
+
+ void itoa(int n, char s[])
+ {
+     int i, sign;
+
+     if ((sign = n) < 0)  /* record sign */
+         n = -n;          /* make n positive */
+     i = 0;
+     do {       /* generate digits in reverse order */
+         s[i++] = n % 10 + '0';   /* get next digit */
+     } while ((n /= 10) > 0);     /* delete it */
+     if (sign < 0)
+         s[i++] = '-';
+     s[i] = '\0';
+     reverse(s);
+ }
+
+void strcat(char* s1, const char* s2){
   while (*s1) ++s1;
   while (*s2) *s1++ = *s2++;
   *s1 = 0;
-
-  return b;
 }
 
 int strcmp(const char* s1, char* s2)
@@ -43,35 +152,48 @@ int strcmp(const char* s1, char* s2)
   return *(unsigned char*)s1-*(unsigned char*)s2;
 }
 
-char* strcpy(char* s1, const char* s2)
-{
-  char* b = s1;
-  while ((*s1++=*s2++));
-  return b;
-}
-
 int sys_directoryWalker(void){
 	char *path;
-	argstr(0,&path);
-	//initialize link log
+	int useless;
+	if(!argint(1,&useless)){
+		path = ".";
+	}
+	else{
+		argstr(0,&path);
+	}
+	// initialize link log
 	int inodeNum = 0;
 	for(inodeNum = 0; inodeNum<200;inodeNum++){
 		inodeLinkLog[inodeNum]=0;
 	}
-	subRoutine(path);
-	for(inodeNum = 0; inodeNum<25;inodeNum++){
-		cprintf("%d",inodeLinkLog[inodeNum]);
+	// initialize corrupt directory log
+	inodeNum = 0;
+	for(inodeNum = 0; inodeNum<200;inodeNum++){
+		corruptDirs[inodeNum]=0;
 	}
+	// Call recursive subroutine
+	subRoutine(path);
+
+//	for(inodeNum = 0; inodeNum<30;inodeNum++){
+//		cprintf("%d",inodeLinkLog[inodeNum]);
+//	}
+//	cprintf("\n");
+//	cprintf("Printing broken directory/parent pairs\n");
+//	for(inodeNum = 0; inodeNum<30;inodeNum++){
+//		cprintf("%d",corruptDirs[inodeNum]);
+//	}
 	return 0;
 }
 void subRoutine(char* path){
-	uint off, inum;
+
+	uint off;
 	struct dirent de;
 	struct inode * ip = namei(path);
-	//maybe have check for namei results
-	//ilock(ip);
-	inum = ip->inum;
-	inodeLinkLog[inum]++;
+	if(!ip){
+		panic("Invalid File Path");
+	}
+	begin_op();
+	ilock(ip);
 	if(ip->type == T_DIR){
 		// The specified path is a directory, go through its directory entries
 		for(off = 0; off < ip->size; off += sizeof(de)){
@@ -79,59 +201,52 @@ void subRoutine(char* path){
 				// Reading was not successful
 				panic("dirlookup read");
 			}
-			if(de.inum == 0){
-				// Inode is not allocated
-				continue;
+			if(off==0 && (strcmp(de.name,"."))){
+				struct inode* brokenDirParent;
+				char name[14] = "..";
+				iunlock(ip);
+				// Found a corrupted directory, record its inode number and its parents inode number
+				if((brokenDirParent = nameiparent(path,name)) == 0){
+					ilock(ip);
+					continue;
+				}
+				corruptDirs[ip->inum] = brokenDirParent->inum;
+				ilock(ip);
 			}
-			cprintf("DE.name is %s inode# %d\n",de.name,de.inum);
+
+		    if(de.inum == 0){
+		      continue;
+		    }
+
+			cprintf("Name: %s \t inode#: %d\n",de.name,de.inum);
+
 			if (strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0){
 				continue;
 			}
-			if(checkMyAddrs(de.inum)){
-				cprintf("path before %s\n", path);
-				char *new_path = ".";
-				strcpy(new_path,path);
-				char *slash = "/";
-				slash = strcat(slash,de.name);
-				//new_path = strcat(new_path,slash);
-				//iunlock(ip);
-				cprintf("path after %s\n", new_path);
-				//subRoutine(new_path);
-				//ilock(ip);
+			struct inode *dir_ip;
+			dir_ip = dirlookup(ip,de.name,0);
+			inodeLinkLog[de.inum]++;
+			if(dir_ip->type == T_DIR){
+				// we found a directory, recursively call
+				char new_path[14] = {0};
+				strcat(new_path,path);
+				strcat(new_path,"/");
+				strcat(new_path,de.name);
+				iunlock(ip);
+				subRoutine(new_path);
+				ilock(ip);
 			}
 		}
 	}
-	//iunlock(ip);
-}
-
-char * pathCat(char * path, char * subname){
-	char * res;
-	char * test = path;
-	res = strcat(test,"/");
-	res = strcat(res,subname);
-	return res;
-}
-
-int checkMyAddrs(int inum){
-	readsb(1,&sb); // Read superblock
-	struct buf *bp;
-	struct dinode *dip;
-
-	bp = bread(1, IBLOCK(inum, sb));
-	dip = (struct dinode*)bp->data + inum%IPB;
-
-	int addrsIndex;
-	for(addrsIndex=0; addrsIndex<NDIRECT; addrsIndex++){
-		if( dip->addrs[addrsIndex] ==-1){
-			return 0;
-		}
-	}
-	brelse(bp);
-	//check recusively for the indirect links block pointers
-	return 1;
+	iunlock(ip);
+	end_op();
 }
 
 int sys_inodeTBWalker(void){
+	int inodeNum = 0;
+	for(inodeNum = 0; inodeNum<200;inodeNum++){
+		inodeTBWalkerLinkLog[inodeNum]=0;
+	}
 	int inum; // Loop counter
 	struct buf *bp;
 	struct dinode *dip;
@@ -141,38 +256,21 @@ int sys_inodeTBWalker(void){
 		dip = (struct dinode*)bp->data + inum%IPB;
 		if(dip->type != 0){  // not a free inode
 			// Found allocated inode
-			cprintf("inode#: %d \t type: %d \t links: %d\n",inum,dip->type,dip->nlink);
+			cprintf("inode#: %d \t type: %d\n",inum,dip->type);
+			inodeTBWalkerLinkLog[inum]++;
 		}
 		brelse(bp);
 	}
+//	for(inodeNum = 0; inodeNum<30;inodeNum++){
+//		cprintf("%d",inodeTBWalkerLinkLog[inodeNum]);
+//	}
 	return 0;
 }
 
 int sys_deleteIData(void){
-	/*
-	begin_op();
-	int inum;
-	argint(0,&inum); // Get inode number of inode to delete from arguments list
-	struct inode *inodeToDel;
-	inodeToDel = calliget(inum); // Obtain inode
-	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
-
-	ilock(inodeToDel);
-	//inodeToDel->type=0;
-	inodeToDel->nlink=0;
-	inodeToDel->ref=0;
-	callitrunc(inodeToDel);
-	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
-	iupdate(inodeToDel);
-	iunlockput(inodeToDel);
-	end_op();
-
-	inodeToDel = calliget(inum);
-	cprintf("\n\n---> inode#: %d \t type: %d\n\n",inodeToDel->inum,inodeToDel->type);
-	 */
 	int inum;
 	argint(0,&inum);
-	calliget(inum);
+	callDeleteInFS(inum);
 	return 0;
 }
 

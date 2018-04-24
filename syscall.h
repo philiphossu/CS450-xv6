@@ -24,3 +24,5 @@
 #define SYS_inodeTBWalker 23
 #define SYS_deleteIData 24
 #define SYS_directoryWalker 25
+#define SYS_compareWalkers 26
+#define SYS_recoverFS 27

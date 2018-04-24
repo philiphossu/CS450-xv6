@@ -27,6 +27,8 @@ int myMemory(void);
 int inodeTBWalker(void);
 int deleteIData(int);
 int directoryWalker(char*);
+int compareWalkers(void);
+int recoverFS(void);
 
 // ulib.c
 int stat(char*, struct stat*);

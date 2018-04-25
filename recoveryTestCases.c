@@ -22,9 +22,12 @@ int main(int argc, char **argv) {
 	close(fd);
 	// Call directoryWalker to show that it can work with a provided filepath
 	directoryWalker("foo");
+	mkdir("bar");
+	printf(1, "----> Created directory bar inside of root\n");
 	// Corrupt inode 24 corresponding to the foo directory
-	printf(1, "\n!! Corrupting inode 24 (foo directory) !! \n");
+	printf(1, "\n!! Corrupting inodes 24,26 (foo directory, bar directory) !! \n");
 	deleteIData(24);
+	deleteIData(26);
 	// Compare the walkers again, we expect differences
 	if(compareWalkers()){
 		// If compareWalkers finds no differences, notify user
@@ -35,7 +38,13 @@ int main(int argc, char **argv) {
 	printf(1, "\n!! Recovering FS !! \n");
 	recoverFS();
 
-	// Now, run shell level commands to prove that the recovery was successful
+	// Show that recovery made FS consistent
+	if(compareWalkers()){
+		// If compareWalkers finds no differences, notify user
+		printf(1,"No Differences Detected\n");
+	}
+
+	// Now, run shell level commands to prove that the recovery preserved file/dir structure
 
 	exit();
 	return 0;

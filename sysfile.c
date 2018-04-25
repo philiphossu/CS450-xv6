@@ -208,10 +208,8 @@ void directoryWalkerSubRoutine(char* path){
 				char name[14] = "..";
 				iunlock(ip);
 				// Found a corrupted directory, record its inode number and its parents inode number
-				if((brokenDirParent = nameiparent(path,name)) == 0){
-					ilock(ip);
-					continue;
-				}
+				brokenDirParent = nameiparent(path,name);
+
 				corruptDirs[ip->inum] = brokenDirParent->inum;
 				ilock(ip);
 			}
@@ -225,19 +223,16 @@ void directoryWalkerSubRoutine(char* path){
 			if (strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0){
 				continue;
 			}
-			struct inode *dir_ip;
-			dir_ip = dirlookup(ip,de.name,0);
+
 			inodeLinkLog[de.inum]++;
-			if(dir_ip->type == T_DIR){
-				// we found a directory, recursively call
-				char new_path[14] = {0};
-				strcat(new_path,path);
-				strcat(new_path,"/");
-				strcat(new_path,de.name);
-				iunlock(ip);
-				directoryWalkerSubRoutine(new_path);
-				ilock(ip);
-			}
+
+			char new_path[14] = {0};
+			strcat(new_path,path);
+			strcat(new_path,"/");
+			strcat(new_path,de.name);
+			iunlock(ip);
+			directoryWalkerSubRoutine(new_path);
+			ilock(ip);
 		}
 	}
 	iunlock(ip);

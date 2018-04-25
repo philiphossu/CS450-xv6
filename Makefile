@@ -176,7 +176,7 @@ UPROGS=\
 	_zombie\
 	_testfreeAndAllocate\
 	_directoryWalker\
-	_w1\
+	_recoveryTestCases\
 	_compareWalkers\
 	_recoverFS\
 

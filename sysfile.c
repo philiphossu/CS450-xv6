@@ -36,13 +36,13 @@ int sys_recoverFS(){
 	int inodeIndex;
 	for(inodeIndex=2;inodeIndex<200; inodeIndex++){
 		if(corruptDirs[inodeIndex] != 0){
-			cprintf("FIXING A DIRECTORY\n");
+			cprintf("FIXING A PROBLEM\n");
 			fixDir(inodeIndex, corruptDirs[inodeIndex]);
 		}
 	}
 	for(inodeIndex=2; inodeIndex<200; inodeIndex++){
 		if(inodeLinkLog[inodeIndex] != inodeTBWalkerLinkLog[inodeIndex]){
-			cprintf("FIXING A FILE\n");
+			cprintf("FIXING A PROBLEM\n");
 			fixFile(inodeIndex);
 		}
 	}
@@ -154,13 +154,21 @@ int strcmp(const char* s1, char* s2)
 
 int sys_directoryWalker(void){
 	char *path;
-	int useless;
-	if(!argint(1,&useless)){
+	int useless = argstr(0,&path);
+	cprintf("argSTR is = %d\n",useless);
+	if(!path){
 		path = ".";
+		cprintf("changing course\n");
 	}
-	else{
-		argstr(0,&path);
-	}
+	cprintf("path is %s\n",path);
+//	if(!argint(0,&useless)){
+//		cprintf("nnooooooo");
+//		path = ".";
+//	}
+//	else{
+//		cprintf("aahhhhhhhh");
+//		argstr(0,&path);
+//	}
 	// initialize link log
 	int inodeNum = 0;
 	for(inodeNum = 0; inodeNum<200;inodeNum++){

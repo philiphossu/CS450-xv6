@@ -17,7 +17,7 @@
 #include "fcntl.h"
 #include "buf.h"
 
-void subRoutine(char* path);
+void directoryWalkerSubRoutine(char* path);
 void strcat(char* s1, const char* s2);
 int strcmp(const char* s1, char* s2);
 int sys_directoryWalker(void);
@@ -26,6 +26,7 @@ void fixFile(int inum);
 void reverse(char s[]);
 void itoa(int n, char s[]);
 void fixDir(int dirIndex, int parentIndex);
+void resetArrays();
 
 struct superblock sb;
 int inodeLinkLog[200];
@@ -86,11 +87,12 @@ void fixFile(int inum){
 }
 
 int sys_compareWalkers(){
+	resetArrays();
 	cprintf("\n= = = Calling inodeTBwalker = = =\n");
 	sys_inodeTBWalker();
 	cprintf("\n\n");
 	cprintf("\n= = = Calling directoryWalker = = =\n");
-	sys_directoryWalker();
+	directoryWalkerSubRoutine(".");
 	cprintf("\n\n");
 	cprintf("\n= = = Comparing walkers = = =\n");
 	int inodeIndex;
@@ -151,24 +153,7 @@ int strcmp(const char* s1, char* s2)
   for (; *s1 && *s2 && *s1==*s2; s1++, s2++);
   return *(unsigned char*)s1-*(unsigned char*)s2;
 }
-
-int sys_directoryWalker(void){
-	char *path;
-	int useless = argstr(0,&path);
-	cprintf("argSTR is = %d\n",useless);
-	if(!path){
-		path = ".";
-		cprintf("changing course\n");
-	}
-	cprintf("path is %s\n",path);
-//	if(!argint(0,&useless)){
-//		cprintf("nnooooooo");
-//		path = ".";
-//	}
-//	else{
-//		cprintf("aahhhhhhhh");
-//		argstr(0,&path);
-//	}
+void resetArrays(){
 	// initialize link log
 	int inodeNum = 0;
 	for(inodeNum = 0; inodeNum<200;inodeNum++){
@@ -179,8 +164,17 @@ int sys_directoryWalker(void){
 	for(inodeNum = 0; inodeNum<200;inodeNum++){
 		corruptDirs[inodeNum]=0;
 	}
+}
+int sys_directoryWalker(void){
+	char *path;
+	argstr(0,&path);
+	if(!path){
+		path = ".";
+	}
+	cprintf("path is %s\n",path);
+	resetArrays();
 	// Call recursive subroutine
-	subRoutine(path);
+	directoryWalkerSubRoutine(path);
 
 //	for(inodeNum = 0; inodeNum<30;inodeNum++){
 //		cprintf("%d",inodeLinkLog[inodeNum]);
@@ -192,7 +186,7 @@ int sys_directoryWalker(void){
 //	}
 	return 0;
 }
-void subRoutine(char* path){
+void directoryWalkerSubRoutine(char* path){
 
 	uint off;
 	struct dirent de;
@@ -241,7 +235,7 @@ void subRoutine(char* path){
 				strcat(new_path,"/");
 				strcat(new_path,de.name);
 				iunlock(ip);
-				subRoutine(new_path);
+				directoryWalkerSubRoutine(new_path);
 				ilock(ip);
 			}
 		}

@@ -25,15 +25,15 @@ int main(int argc, char **argv) {
 	// Corrupt inode 24 corresponding to the foo directory
 	printf(1, "\n!! Corrupting inode 24 (foo directory) !! \n");
 	deleteIData(24);
-//	// Compare the walkers again, we expect differences
-//	if(compareWalkers()){
-//		// If compareWalkers finds no differences, notify user
-//		printf(1,"No Differences Detected\n");
-//	}
-//
-//	// Recover the FS
-//	printf(1, "\n!! Recovering FS !! \n");
-//	recoverFS();
+	// Compare the walkers again, we expect differences
+	if(compareWalkers()){
+		// If compareWalkers finds no differences, notify user
+		printf(1,"No Differences Detected\n");
+	}
+
+	// Recover the FS
+	printf(1, "\n!! Recovering FS !! \n");
+	recoverFS();
 
 	// Now, run shell level commands to prove that the recovery was successful
 
